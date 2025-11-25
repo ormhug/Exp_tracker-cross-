@@ -2,8 +2,9 @@ import 'package:expense_tracker/model/expense.dart';
 import 'package:flutter/material.dart';
 
 class NewExpense extends StatefulWidget {
-  const NewExpense({super.key});
+  final void Function(Expense expense) onAddExpense;
 
+  const NewExpense({super.key, required this.onAddExpense});
   @override
   State<NewExpense> createState() {
     return _NewExpenseState();
@@ -42,6 +43,46 @@ class _NewExpenseState extends State<NewExpense> {
     setState(() {
       _selectedDate = pickedDate;
     });
+  }
+
+  void _submitExpenseData() {
+    //1. get the data an validate
+    final enteredAmount = double.tryParse(_amountController.text);
+    final amountValid = enteredAmount == null || enteredAmount <= 0;
+    if (_titleController.text.trim().isEmpty ||
+        amountValid == true ||
+        _selectedDate == null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text("Invalid Input"),
+          content: Text(
+            "Please make sure a valid title, amount, date and category was entered.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+              },
+              child: Text("Okay"),
+            ),
+          ],
+        ),
+      );
+      return;
+      //show error message
+    }
+    //2. add to the list
+
+    final exp = Expense(
+      amount: enteredAmount!,
+      title: _titleController.text,
+      date: _selectedDate!,
+      category: _selectedCategory,
+    );
+    widget.onAddExpense(exp);
+    //3. close the modal sheet
+    Navigator.pop(context);
   }
 
   @override
@@ -109,6 +150,7 @@ class _NewExpenseState extends State<NewExpense> {
                   });
                 },
               ),
+              Spacer(),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
